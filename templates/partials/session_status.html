@@ -1,0 +1,38 @@
+<div class="session-active">
+    <div class="session-info">
+        <div class="recording-indicator">
+            <span class="rec-dot"></span> 録音中
+        </div>
+        <div class="session-details">
+            <div class="detail-row">
+                <span class="detail-label">コンテンツ:</span>
+                <span class="detail-value">{{ session.content_name }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">プラットフォーム:</span>
+                <span class="detail-value">{{ session.platform_type }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">端末:</span>
+                <span class="detail-value">{{ session.device }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">OS:</span>
+                <span class="detail-value">{{ session.os_version }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">開始時刻:</span>
+                <span class="detail-value">{{ session.start_time.strftime('%H:%M:%S') }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">受信トラック数:</span>
+                <span class="detail-value" id="track-count"
+                      hx-ext="sse" sse-connect="/stream/metadata"
+                      sse-swap="track-count" hx-swap="innerHTML">{{ session.seq }}</span>
+            </div>
+        </div>
+    </div>
+    <form hx-post="/session/stop" hx-target="#session-control" hx-swap="innerHTML">
+        <button type="submit" class="btn btn-stop">セッション終了 → ログ保存</button>
+    </form>
+</div>

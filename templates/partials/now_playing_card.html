@@ -1,0 +1,22 @@
+<div class="track-card {{ 'recording' if session_active else '' }}">
+    <div class="track-header">
+        <span class="track-time">{{ time_str }}</span>
+        {% if status %}
+        <span class="track-status status-{{ status }}">{{ status }}</span>
+        {% endif %}
+    </div>
+    <div class="track-title">{{ title or '(タイトルなし)' }}</div>
+    <div class="track-artist">{{ artist or '(不明)' }}</div>
+    {% if album %}
+    <div class="track-detail"><span class="label">Album:</span> {{ album }}</div>
+    {% endif %}
+    {% if genre %}
+    <div class="track-detail"><span class="label">Genre:</span> {{ genre }}</div>
+    {% endif %}
+    <div class="track-meta">
+        <span class="duration">{{ duration_str }}</span>
+        {% if track_num_str %}
+        <span class="track-num">{{ track_num_str }}</span>
+        {% endif %}
+    </div>
+</div>

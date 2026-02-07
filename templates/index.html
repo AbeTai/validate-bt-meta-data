@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- セッション制御エリア -->
+<section class="session-control" id="session-control">
+    {% if session.active %}
+        {% include "partials/session_status.html" %}
+    {% else %}
+        {% include "partials/session_form.html" %}
+    {% endif %}
+</section>
+
+<!-- リアルタイムメタデータフィード -->
+<section class="metadata-feed">
+    <h2>メタデータフィード</h2>
+    <div hx-ext="sse" sse-connect="/stream/metadata">
+        <div id="feed-container" sse-swap="metadata" hx-swap="afterbegin">
+            {% if not session.active %}
+            <div class="feed-placeholder">
+                セッションを開始すると、受信したメタデータがここに表示されます
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<!-- 過去セッション一覧 -->
+<section class="session-history">
+    <h2>過去セッション一覧</h2>
+    <div id="session-list">
+        {% include "partials/session_list.html" %}
+    </div>
+</section>
+{% endblock %}

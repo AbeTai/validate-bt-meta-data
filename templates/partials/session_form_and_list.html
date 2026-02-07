@@ -1,0 +1,10 @@
+{% include "partials/session_form.html" %}
+
+<script>
+// セッション停止後、セッション一覧も更新する
+document.addEventListener('DOMContentLoaded', function() {
+    htmx.ajax('GET', '/sessions', {target: '#session-list', swap: 'innerHTML'});
+});
+// DOMContentLoaded が既に発火している場合にも対応
+htmx.ajax('GET', '/sessions', {target: '#session-list', swap: 'innerHTML'});
+</script>

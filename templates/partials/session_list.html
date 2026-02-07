@@ -1,0 +1,28 @@
+{% if sessions %}
+<table class="session-table">
+    <thead>
+        <tr>
+            <th>ファイル名</th>
+            <th>コンテンツ</th>
+            <th>Web/アプリ</th>
+            <th>端末</th>
+            <th>OS</th>
+            <th>トラック数</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for s in sessions %}
+        <tr>
+            <td><a href="/sessions/{{ s.filename }}" class="file-link">{{ s.filename }}</a></td>
+            <td>{{ s.content_name }}</td>
+            <td>{{ s.platform_type }}</td>
+            <td>{{ s.device }}</td>
+            <td>{{ s.os_version }}</td>
+            <td>{{ s.track_count }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p class="no-sessions">保存されたセッションはまだありません</p>
+{% endif %}

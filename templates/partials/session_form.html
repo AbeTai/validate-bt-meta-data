@@ -1,0 +1,68 @@
+<form hx-post="/session/start" hx-target="#session-control" hx-swap="innerHTML" class="session-form">
+    <div class="form-group">
+        <label for="content_name">コンテンツ名</label>
+        <input type="text" id="content_name" name="content_name"
+               placeholder="例: Spotify, YouTube, Apple Music, Netflix, radiko"
+               required>
+    </div>
+
+    <div class="form-group">
+        <label for="platform_type">Web or アプリ</label>
+        <select id="platform_type" name="platform_type" required>
+            <option value="">-- 選択 --</option>
+            <option value="web">Web</option>
+            <option value="app">アプリ</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="device">コンテンツ再生端末</label>
+        <select id="device" name="device" required
+                hx-get="/os-options"
+                hx-target="#os-select"
+                hx-swap="innerHTML"
+                hx-include="this">
+            <option value="">-- 選択 --</option>
+            <option value="iPhone">iPhone</option>
+            <option value="Mac">Mac</option>
+            <option value="Windows">Windows</option>
+            <option value="Android">Android</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="os_version">コンテンツ再生 OS</label>
+        <select id="os-select" name="os_version" required>
+            <option value="">-- 端末を先に選択 --</option>
+        </select>
+        <input type="text" id="os-custom" name="os_version_custom"
+               placeholder="OS バージョンを入力"
+               class="hidden" disabled>
+    </div>
+
+    <button type="submit" class="btn btn-start">セッション開始</button>
+</form>
+
+<script>
+document.addEventListener('htmx:afterSwap', function(evt) {
+    if (evt.detail.target.id === 'os-select') {
+        const select = document.getElementById('os-select');
+        const customInput = document.getElementById('os-custom');
+        select.addEventListener('change', function() {
+            if (this.value === 'その他') {
+                customInput.classList.remove('hidden');
+                customInput.disabled = false;
+                customInput.required = true;
+                select.name = '';
+                customInput.name = 'os_version';
+            } else {
+                customInput.classList.add('hidden');
+                customInput.disabled = true;
+                customInput.required = false;
+                select.name = 'os_version';
+                customInput.name = 'os_version_custom';
+            }
+        });
+    }
+});
+</script>
