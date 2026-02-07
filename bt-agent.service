@@ -1,0 +1,12 @@
+[Unit]
+Description=Bluetooth Auto-Discoverable Setup
+After=bluetooth.target
+Requires=bluetooth.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/home/pi/bt-metadata-collector/scripts/bt-setup.sh
+
+[Install]
+WantedBy=multi-user.target

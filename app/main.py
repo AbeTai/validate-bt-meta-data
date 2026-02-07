@@ -10,6 +10,8 @@ import logging
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from datetime import datetime
+from logging.handlers import RotatingFileHandler
+from pathlib import Path
 from typing import Optional
 
 from fastapi import FastAPI, Form, Query, Request
@@ -26,10 +28,25 @@ from app.services.database import (
     save_session,
 )
 
+# ログ設定
+LOG_DIR = Path(__file__).resolve().parent.parent / "logs"
+LOG_DIR.mkdir(parents=True, exist_ok=True)
+LOG_FILE = LOG_DIR / "app.log"
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
 )
+
+# RotatingFileHandler: 最大 5MB × 3 世代
+_file_handler = RotatingFileHandler(
+    LOG_FILE, maxBytes=5 * 1024 * 1024, backupCount=3, encoding="utf-8"
+)
+_file_handler.setFormatter(
+    logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s")
+)
+logging.getLogger().addHandler(_file_handler)
+
 logger = logging.getLogger(__name__)
 
 # OS 選択肢の定義
@@ -63,6 +80,10 @@ sse_queues: list[asyncio.Queue] = []
 _loop: Optional[asyncio.AbstractEventLoop] = None
 # AVRCP モニター
 _monitor: Optional[AVRCPMonitor] = None
+# サーバー起動時刻
+_server_start_time: Optional[datetime] = None
+# 最後のメタデータ受信時刻
+_last_metadata_time: Optional[datetime] = None
 
 
 def _on_metadata(metadata: dict):
@@ -74,6 +95,9 @@ def _on_metadata(metadata: dict):
 
 def _handle_metadata(metadata: dict):
     """メタデータを処理して SSE キューに配信する（asyncio スレッド）。"""
+    global _last_metadata_time
+    _last_metadata_time = datetime.now()
+
     if session.active:
         session.seq += 1
         track_record = {
@@ -107,8 +131,9 @@ def _handle_metadata(metadata: dict):
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """アプリケーションの起動・終了処理。"""
-    global _loop, _monitor
+    global _loop, _monitor, _server_start_time
     _loop = asyncio.get_event_loop()
+    _server_start_time = datetime.now()
 
     _monitor = AVRCPMonitor(callback=_on_metadata)
     _monitor.start()
@@ -411,8 +436,22 @@ async def download_session(filename: str):
 @app.get("/health")
 async def health():
     """ヘルスチェック。"""
+    # サーバー起動からの経過時間
+    uptime_seconds = None
+    if _server_start_time:
+        uptime_seconds = int((datetime.now() - _server_start_time).total_seconds())
+
+    # ログファイルサイズ
+    log_file_size = None
+    if LOG_FILE.exists():
+        log_file_size = LOG_FILE.stat().st_size
+
     return {
         "status": "ok",
         "session_active": session.active,
         "mock_mode": _monitor.is_mock if _monitor else None,
+        "last_metadata_time": _last_metadata_time.isoformat() if _last_metadata_time else None,
+        "uptime_seconds": uptime_seconds,
+        "server_start_time": _server_start_time.isoformat() if _server_start_time else None,
+        "log_file_size_bytes": log_file_size,
     }

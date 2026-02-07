@@ -1,6 +1,9 @@
 # Data
 data/
 
+# Logs
+logs/
+
 # Python
 .venv/
 __pycache__/

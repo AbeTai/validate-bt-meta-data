@@ -1,17 +1,19 @@
 [Unit]
 Description=BT Metadata Collector
-After=bluetooth.target network.target
+After=bluetooth.target network.target bt-agent.service
 Requires=bluetooth.target
+Wants=bt-agent.service
 
 [Service]
 Type=simple
 User=pi
 WorkingDirectory=/home/pi/bt-metadata-collector
+EnvironmentFile=-/home/pi/bt-metadata-collector/.env
 Environment=PATH=/home/pi/bt-metadata-collector/.venv/bin:/usr/bin:/bin
 Environment=BT_MOCK=false
 ExecStart=/home/pi/bt-metadata-collector/.venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000
-Restart=always
-RestartSec=5
+Restart=on-failure
+RestartSec=3
 
 [Install]
 WantedBy=multi-user.target
