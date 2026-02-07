@@ -167,18 +167,8 @@ class AVRCPMonitor:
             logger.debug("AVRCP メタデータ受信: %s", metadata.get("title", ""))
             self._callback(metadata)
         elif "Status" in changed:
-            # Status のみの変更もコールバックで通知
-            self._callback({
-                "status": self._current_status,
-                "timestamp": datetime.now().isoformat(),
-                "title": "",
-                "artist": "",
-                "album": "",
-                "genre": "",
-                "track_number": None,
-                "number_of_tracks": None,
-                "duration_ms": None,
-            })
+            # Status のみの変更はログに記録するだけ（カードは生成しない）
+            logger.debug("AVRCP ステータス変更: %s", self._current_status)
 
     def _on_interfaces_added(self, path, interfaces):
         """新しい Bluetooth インターフェース追加の検出。"""
