@@ -13,7 +13,7 @@
     <tbody>
         {% for s in sessions %}
         <tr>
-            <td><a href="javascript:void(0)" onclick="window.location.href='/sessions/{{ s.filename }}'" class="file-link">{{ s.filename }}</a></td>
+            <td><a href="javascript:void(0)" onclick="downloadFile('{{ s.filename }}')" class="file-link">{{ s.filename }}</a></td>
             <td>{{ s.content_name }}</td>
             <td>{{ s.platform_type }}</td>
             <td>{{ s.device }}</td>
@@ -23,6 +23,19 @@
         {% endfor %}
     </tbody>
 </table>
+<script>
+function downloadFile(filename) {
+    fetch('/sessions/' + filename)
+        .then(r => r.blob())
+        .then(blob => {
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(a.href);
+        });
+}
+</script>
 {% else %}
 <p class="no-sessions">保存されたセッションはまだありません</p>
 {% endif %}

@@ -45,24 +45,26 @@
 
 <script>
 document.addEventListener('htmx:afterSwap', function(evt) {
-    if (evt.detail.target.id === 'os-select') {
+    if (evt.detail && evt.detail.target && evt.detail.target.id === 'os-select') {
         const select = document.getElementById('os-select');
         const customInput = document.getElementById('os-custom');
-        select.addEventListener('change', function() {
-            if (this.value === 'その他') {
-                customInput.classList.remove('hidden');
-                customInput.disabled = false;
-                customInput.required = true;
-                select.name = '';
-                customInput.name = 'os_version';
-            } else {
-                customInput.classList.add('hidden');
-                customInput.disabled = true;
-                customInput.required = false;
-                select.name = 'os_version';
-                customInput.name = 'os_version_custom';
-            }
-        });
+        if (select && customInput) {
+            select.addEventListener('change', function() {
+                if (this.value === 'その他') {
+                    customInput.classList.remove('hidden');
+                    customInput.disabled = false;
+                    customInput.required = true;
+                    select.name = '';
+                    customInput.name = 'os_version';
+                } else {
+                    customInput.classList.add('hidden');
+                    customInput.disabled = true;
+                    customInput.required = false;
+                    select.name = 'os_version';
+                    customInput.name = 'os_version_custom';
+                }
+            });
+        }
     }
 });
 </script>
