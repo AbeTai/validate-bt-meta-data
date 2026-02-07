@@ -6,6 +6,9 @@ Web アプリケーションのメインモジュール。
 """
 
 import asyncio
+import csv
+import io
+import json
 import logging
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
@@ -337,7 +340,7 @@ def _format_duration(duration_ms) -> str:
 
 
 def _render_track_card(metadata: dict, session_active: bool, track_count: int) -> str:
-    """トラックカードの HTML を生成する。"""
+    """トラックカードの HTML を Jinja2 テンプレートで生成する。"""
     timestamp = metadata.get("timestamp", "")
     try:
         dt = datetime.fromisoformat(timestamp)
@@ -356,61 +359,58 @@ def _render_track_card(metadata: dict, session_active: bool, track_count: int) -
 
     duration_str = _format_duration(duration_ms) if duration_ms else "null"
 
-    # 表示値（null 表示対応）
-    title_display = title if title else "null"
-    artist_display = artist if artist else "null"
-    album_display = album if album else "null"
-    genre_display = genre if genre else "null"
-    track_num_display = str(track_number) if track_number is not None else "null"
-    num_tracks_display = str(number_of_tracks) if number_of_tracks is not None else "null"
-    status_display = status if status else "null"
+    context = {
+        "session_active": session_active,
+        "time_str": time_str,
+        "title_display": title if title else "null",
+        "artist_display": artist if artist else "null",
+        "album_display": album if album else "null",
+        "genre_display": genre if genre else "null",
+        "track_num_display": str(track_number) if track_number is not None else "null",
+        "num_tracks_display": str(number_of_tracks) if number_of_tracks is not None else "null",
+        "status_display": status if status else "null",
+        "status_class": {
+            "playing": "status-playing",
+            "paused": "status-paused",
+            "stopped": "status-stopped",
+        }.get(status or "", ""),
+        "duration_str": duration_str,
+    }
 
-    # ステータスの色
-    status_class = {
-        "playing": "status-playing",
-        "paused": "status-paused",
-        "stopped": "status-stopped",
-    }.get(status or "", "")
-
-    # null 表示用の CSS クラス
-    def _val(display_value):
-        if display_value == "null":
-            return f'<span class="null-value">null</span>'
-        return display_value
-
-    # 録音中インジケーター
-    recording = "recording" if session_active else ""
-
-    # HTML 生成
-    parts = [
-        f'<div class="track-card {recording}">',
-        f'  <div class="track-header">',
-        f'    <span class="track-time">{time_str}</span>',
-        f'    <span class="track-status {status_class}">{_val(status_display)}</span>',
-        f'  </div>',
-        f'  <div class="track-field"><span class="label">Title:</span> {_val(title_display)}</div>',
-        f'  <div class="track-field"><span class="label">Artist:</span> {_val(artist_display)}</div>',
-        f'  <div class="track-field"><span class="label">Album:</span> {_val(album_display)}</div>',
-        f'  <div class="track-field"><span class="label">Genre:</span> {_val(genre_display)}</div>',
-        f'  <div class="track-field"><span class="label">TrackNumber:</span> {_val(track_num_display)}</div>',
-        f'  <div class="track-field"><span class="label">NumberOfTracks:</span> {_val(num_tracks_display)}</div>',
-        f'  <div class="track-field"><span class="label">Duration:</span> {_val(duration_str)}</div>',
-        f'</div>',
-    ]
-
-    return "\n".join(parts)
+    template = templates.get_template("partials/now_playing_card.html")
+    return template.render(context)
 
 
 # ── 過去セッション ──
 
 
 @app.get("/sessions", response_class=HTMLResponse)
-async def get_sessions(request: Request):
-    """過去セッション一覧を返す。"""
+async def get_sessions(
+    request: Request,
+    content: str = Query(""),
+    device: str = Query(""),
+    os_version: str = Query(""),
+):
+    """過去セッション一覧を返す（フィルタ対応）。"""
     sessions = list_sessions()
+
+    # フィルタリング
+    if content:
+        sessions = [s for s in sessions if content.lower() in s.get("content_name", "").lower()]
+    if device:
+        sessions = [s for s in sessions if device == s.get("device", "")]
+    if os_version:
+        sessions = [s for s in sessions if os_version == s.get("os_version", "")]
+
     return templates.TemplateResponse(
         "partials/session_list.html",
-        {"request": request, "sessions": sessions},
+        {
+            "request": request,
+            "sessions": sessions,
+            "filter_content": content,
+            "filter_device": device,
+            "filter_os_version": os_version,
+        },
     )
 
 
@@ -427,6 +427,42 @@ async def download_session(filename: str):
         path=filepath,
         filename=filename,
         media_type="text/plain; charset=utf-8",
+    )
+
+
+@app.get("/sessions/{filename}/csv")
+async def download_session_csv(filename: str):
+    """セッションログを CSV 形式でダウンロードする。"""
+    filepath = get_session_filepath(filename)
+    if filepath is None:
+        return JSONResponse(
+            status_code=404,
+            content={"detail": "ファイルが見つかりません"},
+        )
+
+    csv_headers = [
+        "timestamp", "title", "artist", "album", "genre",
+        "track_number", "number_of_tracks", "duration_ms", "status",
+    ]
+
+    output = io.StringIO()
+    writer = csv.DictWriter(output, fieldnames=csv_headers, extrasaction="ignore")
+    writer.writeheader()
+
+    with open(filepath, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            record = json.loads(line)
+            if record.get("type") == "track":
+                writer.writerow(record)
+
+    csv_filename = filename.replace(".jsonl", ".csv")
+    return Response(
+        content=output.getvalue(),
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="{csv_filename}"'},
     )
 
 

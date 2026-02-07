@@ -1,3 +1,25 @@
+<div class="session-filter">
+    <div class="filter-row"
+         hx-get="/sessions"
+         hx-target="#session-list"
+         hx-swap="innerHTML"
+         hx-trigger="change from:select, keyup changed delay:500ms from:input"
+         hx-include=".filter-row">
+        <input type="text" name="content" placeholder="コンテンツ名で検索"
+               value="{{ filter_content|default('') }}" class="filter-input">
+        <select name="device" class="filter-select">
+            <option value="">全端末</option>
+            <option value="iPhone" {{ 'selected' if filter_device|default('') == 'iPhone' }}>iPhone</option>
+            <option value="Mac" {{ 'selected' if filter_device|default('') == 'Mac' }}>Mac</option>
+            <option value="Windows" {{ 'selected' if filter_device|default('') == 'Windows' }}>Windows</option>
+            <option value="Android" {{ 'selected' if filter_device|default('') == 'Android' }}>Android</option>
+        </select>
+        <select name="os_version" class="filter-select">
+            <option value="">全OS</option>
+        </select>
+    </div>
+</div>
+
 {% if sessions %}
 <table class="session-table" hx-boost="false">
     <thead>
@@ -8,6 +30,7 @@
             <th>端末</th>
             <th>OS</th>
             <th>トラック数</th>
+            <th>CSV</th>
         </tr>
     </thead>
     <tbody>
@@ -19,6 +42,7 @@
             <td>{{ s.device }}</td>
             <td>{{ s.os_version }}</td>
             <td>{{ s.track_count }}</td>
+            <td><a href="/sessions/{{ s.filename }}/csv" class="csv-link">DL</a></td>
         </tr>
         {% endfor %}
     </tbody>
