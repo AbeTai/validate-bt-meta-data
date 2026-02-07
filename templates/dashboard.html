@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard">
+    <div class="nav-links">
+        <a href="/">← メインページ</a>
+    </div>
+
+    <!-- 統計サマリー -->
+    <section class="stats-summary">
+        <h2>統計サマリー</h2>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">{{ summary.total_sessions }}</div>
+                <div class="stat-label">総セッション数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ summary.total_tracks }}</div>
+                <div class="stat-label">総トラック数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ summary.service_counts|length }}</div>
+                <div class="stat-label">サービス種類</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ summary.device_counts|length }}</div>
+                <div class="stat-label">端末種類</div>
+            </div>
+        </div>
+
+        {% if summary.service_counts %}
+        <div class="stats-detail">
+            <h3>サービス別セッション数</h3>
+            <div class="tag-list">
+                {% for service, count in summary.service_counts.items() %}
+                <span class="tag">{{ service }} <strong>{{ count }}</strong></span>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </section>
+
+    <!-- メタデータ充実度マトリクス -->
+    <section class="coverage-matrix">
+        <h2>メタデータ充実度マトリクス</h2>
+        {% if coverage.services %}
+        <div class="table-scroll">
+            <table class="matrix-table">
+                <thead>
+                    <tr>
+                        <th>サービス</th>
+                        {% for field in coverage.fields %}
+                        <th>{{ field }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for service in coverage.services %}
+                    <tr>
+                        <td class="service-name">{{ service }}</td>
+                        {% for field in coverage.fields %}
+                        {% set rate = coverage.matrix[service][field] %}
+                        <td class="coverage-cell {% if rate >= 80 %}coverage-high{% elif rate >= 30 %}coverage-mid{% else %}coverage-low{% endif %}">
+                            {{ rate }}%
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="no-data">データがまだありません。セッションを記録してください。</p>
+        {% endif %}
+    </section>
+
+    <!-- 端末×OS 比較テーブル -->
+    <section class="device-comparison">
+        <h2>端末 × OS 比較テーブル</h2>
+        {% include "partials/comparison_table.html" %}
+    </section>
+</div>
+{% endblock %}

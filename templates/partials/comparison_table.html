@@ -1,0 +1,39 @@
+{% if comparisons %}
+<div class="table-scroll">
+    <table class="comparison-table">
+        <thead>
+            <tr>
+                <th>コンテンツ</th>
+                <th>端末</th>
+                <th>OS</th>
+                <th>Web/App</th>
+                <th>セッション</th>
+                <th>トラック</th>
+                {% for field in fields %}
+                <th>{{ field }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in comparisons %}
+            <tr>
+                <td>{{ row.content_name }}</td>
+                <td>{{ row.device }}</td>
+                <td>{{ row.os_version }}</td>
+                <td>{{ row.platform_type }}</td>
+                <td>{{ row.session_count }}</td>
+                <td>{{ row.track_count }}</td>
+                {% for field in fields %}
+                {% set rate = row.field_coverage[field] %}
+                <td class="coverage-cell {% if rate >= 80 %}coverage-high{% elif rate >= 30 %}coverage-mid{% else %}coverage-low{% endif %}">
+                    {{ rate }}%
+                </td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<p class="no-data">データがまだありません。セッションを記録してください。</p>
+{% endif %}

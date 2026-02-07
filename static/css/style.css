@@ -458,3 +458,124 @@ section h2 {
 .nav-links a:hover {
     text-decoration: underline;
 }
+
+/* ── ダッシュボード ── */
+
+.dashboard section {
+    margin-bottom: 32px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.stat-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--accent);
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+
+.stats-detail h3 {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+}
+
+.tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.tag {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 4px 10px;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.tag strong {
+    color: var(--accent);
+    margin-left: 4px;
+}
+
+/* ── マトリクス・比較テーブル ── */
+
+.table-scroll {
+    overflow-x: auto;
+}
+
+.matrix-table,
+.comparison-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+}
+
+.matrix-table th,
+.comparison-table th {
+    text-align: left;
+    padding: 8px 10px;
+    color: var(--text-muted);
+    font-weight: 500;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+}
+
+.matrix-table td,
+.comparison-table td {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+}
+
+.service-name {
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.coverage-cell {
+    text-align: center;
+    font-weight: 500;
+    font-family: monospace;
+}
+
+.coverage-high {
+    background: rgba(34, 197, 94, 0.15);
+    color: var(--success);
+}
+
+.coverage-mid {
+    background: rgba(245, 158, 11, 0.15);
+    color: var(--warning);
+}
+
+.coverage-low {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--danger);
+}
+
+.no-data {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 32px;
+    font-size: 0.9rem;
+}

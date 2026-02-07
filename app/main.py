@@ -23,6 +23,11 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sse_starlette.sse import EventSourceResponse
 
+from app.services.analysis import (
+    get_device_os_comparison,
+    get_field_coverage_matrix,
+    get_statistics_summary,
+)
 from app.services.avrcp_monitor import AVRCPMonitor
 from app.services.database import (
     generate_filename,
@@ -463,6 +468,30 @@ async def download_session_csv(filename: str):
         content=output.getvalue(),
         media_type="text/csv; charset=utf-8",
         headers={"Content-Disposition": f'attachment; filename="{csv_filename}"'},
+    )
+
+
+# ── ダッシュボード ──
+
+
+@app.get("/dashboard", response_class=HTMLResponse)
+async def dashboard(request: Request):
+    """分析ダッシュボードページ。"""
+    from app.services.analysis import METADATA_FIELDS
+
+    summary = get_statistics_summary()
+    coverage = get_field_coverage_matrix()
+    comparisons = get_device_os_comparison()
+
+    return templates.TemplateResponse(
+        "dashboard.html",
+        {
+            "request": request,
+            "summary": summary,
+            "coverage": coverage,
+            "comparisons": comparisons,
+            "fields": METADATA_FIELDS,
+        },
     )
 
 
