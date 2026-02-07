@@ -401,8 +401,7 @@ async def download_session(filename: str):
     return FileResponse(
         path=filepath,
         filename=filename,
-        media_type="application/octet-stream",
-        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        media_type="text/plain; charset=utf-8",
     )
 
 
