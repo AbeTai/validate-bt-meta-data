@@ -178,8 +178,27 @@ class AVRCPMonitor:
             logger.debug("AVRCP メタデータ受信: %s", metadata.get("title", ""))
             self._callback(metadata)
         elif "Status" in changed:
-            # Status のみの変更はログに記録するだけ（カードは生成しない）
+            # Status のみの変更もカードを生成する（YouTube アプリ等、Track を送らないアプリ対応）
+            status_key = f"status|{self._current_status}"
+            now = time.time()
+            if status_key == self._last_track_key and (now - self._last_track_time) < 2.0:
+                logger.debug("重複ステータスをスキップ: %s", self._current_status)
+                return
+            self._last_track_key = status_key
+            self._last_track_time = now
+
             logger.debug("AVRCP ステータス変更: %s", self._current_status)
+            self._callback({
+                "status": self._current_status,
+                "timestamp": datetime.now().isoformat(),
+                "title": "",
+                "artist": "",
+                "album": "",
+                "genre": "",
+                "track_number": None,
+                "number_of_tracks": None,
+                "duration_ms": None,
+            })
 
     def _on_interfaces_added(self, path, interfaces):
         """新しい Bluetooth インターフェース追加の検出。"""
