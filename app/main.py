@@ -320,30 +320,38 @@ def _render_track_card(metadata: dict, session_active: bool, track_count: int) -
     except (ValueError, TypeError):
         time_str = timestamp
 
-    title = metadata.get("title", "") or "(タイトルなし)"
-    artist = metadata.get("artist", "") or "(不明)"
-    album = metadata.get("album", "")
-    genre = metadata.get("genre", "")
+    title = metadata.get("title") or None
+    artist = metadata.get("artist") or None
+    album = metadata.get("album") or None
+    genre = metadata.get("genre") or None
     duration_ms = metadata.get("duration_ms")
     track_number = metadata.get("track_number")
     number_of_tracks = metadata.get("number_of_tracks")
-    status = metadata.get("status", "")
+    status = metadata.get("status") or None
 
-    duration_str = _format_duration(duration_ms)
+    duration_str = _format_duration(duration_ms) if duration_ms else "null"
 
-    # トラック番号の表示
-    track_num_str = ""
-    if track_number:
-        track_num_str = f"#{track_number}"
-        if number_of_tracks:
-            track_num_str += f"/{number_of_tracks}"
+    # 表示値（null 表示対応）
+    title_display = title if title else "null"
+    artist_display = artist if artist else "null"
+    album_display = album if album else "null"
+    genre_display = genre if genre else "null"
+    track_num_display = str(track_number) if track_number is not None else "null"
+    num_tracks_display = str(number_of_tracks) if number_of_tracks is not None else "null"
+    status_display = status if status else "null"
 
     # ステータスの色
     status_class = {
         "playing": "status-playing",
         "paused": "status-paused",
         "stopped": "status-stopped",
-    }.get(status, "")
+    }.get(status or "", "")
+
+    # null 表示用の CSS クラス
+    def _val(display_value):
+        if display_value == "null":
+            return f'<span class="null-value">null</span>'
+        return display_value
 
     # 録音中インジケーター
     recording = "recording" if session_active else ""
@@ -353,23 +361,17 @@ def _render_track_card(metadata: dict, session_active: bool, track_count: int) -
         f'<div class="track-card {recording}">',
         f'  <div class="track-header">',
         f'    <span class="track-time">{time_str}</span>',
+        f'    <span class="track-status {status_class}">{_val(status_display)}</span>',
+        f'  </div>',
+        f'  <div class="track-field"><span class="label">Title:</span> {_val(title_display)}</div>',
+        f'  <div class="track-field"><span class="label">Artist:</span> {_val(artist_display)}</div>',
+        f'  <div class="track-field"><span class="label">Album:</span> {_val(album_display)}</div>',
+        f'  <div class="track-field"><span class="label">Genre:</span> {_val(genre_display)}</div>',
+        f'  <div class="track-field"><span class="label">TrackNumber:</span> {_val(track_num_display)}</div>',
+        f'  <div class="track-field"><span class="label">NumberOfTracks:</span> {_val(num_tracks_display)}</div>',
+        f'  <div class="track-field"><span class="label">Duration:</span> {_val(duration_str)}</div>',
+        f'</div>',
     ]
-    if status:
-        parts.append(f'    <span class="track-status {status_class}">{status}</span>')
-    parts.append(f'  </div>')
-    parts.append(f'  <div class="track-title">{title}</div>')
-    parts.append(f'  <div class="track-artist">{artist}</div>')
-
-    if album:
-        parts.append(f'  <div class="track-detail"><span class="label">Album:</span> {album}</div>')
-    if genre:
-        parts.append(f'  <div class="track-detail"><span class="label">Genre:</span> {genre}</div>')
-    parts.append(f'  <div class="track-meta">')
-    parts.append(f'    <span class="duration">{duration_str}</span>')
-    if track_num_str:
-        parts.append(f'    <span class="track-num">{track_num_str}</span>')
-    parts.append(f'  </div>')
-    parts.append(f'</div>')
 
     return "\n".join(parts)
 

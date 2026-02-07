@@ -292,35 +292,22 @@ section h2 {
     color: var(--danger);
 }
 
-.track-title {
-    font-size: 1.05rem;
-    font-weight: 600;
-    margin-bottom: 4px;
-}
-
-.track-artist {
-    font-size: 0.9rem;
+.track-field {
+    font-size: 0.85rem;
     color: var(--text-secondary);
-    margin-bottom: 8px;
+    margin-bottom: 3px;
 }
 
-.track-detail {
-    font-size: 0.8rem;
-    color: var(--text-secondary);
-    margin-bottom: 2px;
-}
-
-.track-detail .label {
+.track-field .label {
     color: var(--text-muted);
+    font-weight: 500;
+    margin-right: 4px;
 }
 
-.track-meta {
-    display: flex;
-    gap: 16px;
-    margin-top: 8px;
-    font-size: 0.8rem;
+.null-value {
     color: var(--text-muted);
-    font-family: monospace;
+    opacity: 0.5;
+    font-style: italic;
 }
 
 /* ── セッション一覧テーブル ── */
