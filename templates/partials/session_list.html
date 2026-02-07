@@ -13,7 +13,7 @@
     <tbody>
         {% for s in sessions %}
         <tr>
-            <td><a href="/sessions/{{ s.filename }}" class="file-link" download hx-disable>{{ s.filename }}</a></td>
+            <td><a href="javascript:void(0)" onclick="window.location.href='/sessions/{{ s.filename }}'" class="file-link">{{ s.filename }}</a></td>
             <td>{{ s.content_name }}</td>
             <td>{{ s.platform_type }}</td>
             <td>{{ s.device }}</td>
