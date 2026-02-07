@@ -14,6 +14,12 @@ Raspberry Pi を Bluetooth オーディオレシーバー（A2DP Sink）とし�
 
 Raspberry Pi の初期セットアップ手順は [docs/raspi-setup.md](docs/raspi-setup.md) を参照。
 
+### セットアップ時の注意点
+
+- **Bluetooth デバイス名の設定**: `/etc/bluetooth/main.conf` の `Name` 設定は `hostname` プラグインに上書きされる。デバイス名を変更するには `/etc/machine-info` に `PRETTY_HOSTNAME=BT-MetadataCollector` を設定する
+- **ペアリング時の Authorize service 確認**: ペアリング時に `Authorize service` の確認プロンプトが表示されたら、必ず `yes` と回答する。AVRCP サービスの認可が行われないとメタデータが取得できない
+- **Ghostty ターミナルの場合**: SSH 接続時に `nano` 等が動作しない場合は `export TERM=xterm-256color` を `~/.bashrc` に追加する
+
 ## 起動方法
 
 ### モックモード（開発・テスト用）
@@ -30,7 +36,7 @@ source .venv/bin/activate
 uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
-### systemd サービス
+### systemd サービス（自動起動）
 
 ```bash
 sudo cp bt-metadata-collector.service /etc/systemd/system/
@@ -39,12 +45,79 @@ sudo systemctl enable bt-metadata-collector
 sudo systemctl start bt-metadata-collector
 ```
 
-## 使い方
+## 初期セットアップ完了後の使い方
 
-1. ブラウザで `http://<RPi IP>:8000` にアクセス
-2. コンテンツ名、プラットフォーム、端末、OS を選択して「セッション開始」
-3. 対象端末で音楽や動画を再生 → メタデータがリアルタイム表示される
-4. 「セッション終了 → ログ保存」で JSONL ファイルに保存
+### 1. RPi を起動する
+
+systemd サービスを登録済みなら、電源を入れるだけでサーバーが自動起動する。
+
+手動起動の場合:
+```bash
+ssh pi@bt-collector.local
+cd ~/bt-metadata-collector
+source .venv/bin/activate
+uvicorn app.main:app --host 0.0.0.0 --port 8000
+```
+
+### 2. コンテンツ再生端末を Bluetooth 接続する
+
+- 対象端末（iPhone 等）の Bluetooth 設定から「BT-MetadataCollector」に接続
+- 既にペアリング済み＋trust 済みなら自動接続される
+
+### 3. Mac のブラウザで Web UI を開く
+
+```
+http://bt-collector.local:8000
+```
+
+### 4. セッションを記録する
+
+1. **コンテンツ名**を入力（例: Spotify, YouTube, Apple Music）
+2. **Web or アプリ**を選択
+3. **コンテンツ再生端末**を選択 → OS 選択肢が自動で絞り込まれる
+4. **「セッション開始」** をクリック
+5. 対象端末でコンテンツを再生 → メタデータがリアルタイムでフィードに表示される
+6. 記録が終わったら **「セッション終了 → ログ保存」** をクリック
+7. `data/` ディレクトリに JSONL ファイルが保存される
+
+### 5. ログファイルを Mac に取得する
+
+Mac のターミナルから SCP でコピー:
+
+```bash
+# 全ファイルをまとめてコピー
+scp pi@bt-collector.local:~/bt-metadata-collector/data/*.jsonl ~/Downloads/
+
+# 特定のファイルのみ
+scp pi@bt-collector.local:~/bt-metadata-collector/data/<ファイル名>.jsonl ~/Downloads/
+```
+
+Web UI のセッション一覧からファイル名をクリックすると、新しいタブにテキスト表示もできる。
+
+### 出先での利用（iPhone テザリング）
+
+事前に RPi に iPhone テザリングの Wi-Fi を登録しておけば、出先でも利用可能。詳しくは [docs/raspi-setup.md](docs/raspi-setup.md) セクション 8 を参照。
+
+## AVRCP メタデータについて
+
+### 取得できるフィールド
+
+| フィールド | 説明 |
+|-----------|------|
+| Title | 曲名・動画名 |
+| Artist | アーティスト名 |
+| Album | アルバム名 |
+| Genre | ジャンル |
+| TrackNumber | トラック番号 |
+| NumberOfTracks | 総トラック数 |
+| Duration | 再生時間（ミリ秒） |
+| Status | playing / paused / stopped |
+
+### 既知の挙動
+
+- **AVRCP にはソースアプリの識別子がない** — どのアプリで再生しているかはメタデータからは判定できない。Web UI のセッション入力で人間が指定する設計
+- **アプリによってメタデータの充実度が異なる** — 例: iPhone の YouTube アプリは全フィールドが null になるが、Web 版（Safari）は取得できる。この違いを調査するのが本ツールの目的
+- **同一サービスでも OS による差がある** — Android の YouTube は Album を空にすることが多い等
 
 ## 技術スタック
 
@@ -56,3 +129,33 @@ sudo systemctl start bt-metadata-collector
 ## ログ形式
 
 `data/` ディレクトリに JSONL 形式で保存。詳細は [docs/initial-spec.md](docs/initial-spec.md) セクション 7 を参照。
+
+## トラブルシューティング
+
+### メタデータが表示されない
+
+1. `busctl tree org.bluez | grep player` で MediaPlayer1 が存在するか確認
+2. 存在しない場合は、端末のペアリングを解除して再ペアリング（`Authorize service` に `yes` と回答）
+3. `dbus-monitor --system "sender='org.bluez'"` で D-Bus シグナルが来ているか確認
+
+### Bluetooth デバイスが見つからない
+
+```bash
+bluetoothctl
+power on
+discoverable on
+pairable on
+```
+
+### サーバーの状態確認
+
+```bash
+# systemd サービスのステータス
+sudo systemctl status bt-metadata-collector
+
+# ログ確認
+journalctl -u bt-metadata-collector -f
+
+# ヘルスチェック API
+curl http://localhost:8000/health
+```
