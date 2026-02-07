@@ -1,0 +1,17 @@
+[Unit]
+Description=BT Metadata Collector
+After=bluetooth.target network.target
+Requires=bluetooth.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/bt-metadata-collector
+Environment=PATH=/home/pi/bt-metadata-collector/.venv/bin:/usr/bin:/bin
+Environment=BT_MOCK=false
+ExecStart=/home/pi/bt-metadata-collector/.venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
