@@ -71,6 +71,8 @@ class AVRCPMonitor:
         self._thread: Optional[threading.Thread] = None
         self._mock_mode = os.environ.get("BT_MOCK", "").lower() == "true"
         self._current_status = ""
+        self._last_track_key = ""
+        self._last_track_time = 0.0
 
     @property
     def is_mock(self) -> bool:
@@ -162,6 +164,15 @@ class AVRCPMonitor:
             self._current_status = changed["Status"]
 
         if metadata:
+            # 同一トラックの重複シグナルを除外（2秒以内の同じ Title+Artist）
+            track_key = f"{metadata.get('title', '')}|{metadata.get('artist', '')}"
+            now = time.time()
+            if track_key == self._last_track_key and (now - self._last_track_time) < 2.0:
+                logger.debug("重複シグナルをスキップ: %s", metadata.get("title", ""))
+                return
+            self._last_track_key = track_key
+            self._last_track_time = now
+
             metadata["status"] = self._current_status
             metadata["timestamp"] = datetime.now().isoformat()
             logger.debug("AVRCP メタデータ受信: %s", metadata.get("title", ""))
