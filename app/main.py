@@ -13,7 +13,7 @@ from datetime import datetime
 from typing import Optional
 
 from fastapi import FastAPI, Form, Query, Request
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sse_starlette.sse import EventSourceResponse
@@ -401,7 +401,8 @@ async def download_session(filename: str):
     return FileResponse(
         path=filepath,
         filename=filename,
-        media_type="application/x-ndjson",
+        media_type="application/octet-stream",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
 
 
