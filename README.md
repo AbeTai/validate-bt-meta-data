@@ -7,7 +7,7 @@ Raspberry Pi を Bluetooth オーディオレシーバー（A2DP Sink）とし�
 ## 構成
 
 - **Raspberry Pi 4**: Bluetooth レシーバー + Web サーバー
-- **記録用 Mac**: ブラウザで操作（`http://<RPi IP>:8000`）
+- **記録用端末**: ブラウザで操作（Mac / Windows / Linux / iPad 等、ブラウザがあれば何でも可）
 - **コンテンツ再生端末**: iPhone / Mac / Windows / Android
 
 ## セットアップ
@@ -64,11 +64,15 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000
 - 対象端末（iPhone 等）の Bluetooth 設定から「BT-MetadataCollector」に接続
 - 既にペアリング済み＋trust 済みなら自動接続される
 
-### 3. Mac のブラウザで Web UI を開く
+### 3. ブラウザで Web UI を開く
+
+同じネットワーク上の任意の端末（Mac / Windows / Linux / iPad 等）のブラウザで:
 
 ```
 http://bt-collector.local:8000
 ```
+
+> Windows で `.local` が解決できない場合は、RPi の IP アドレスを直接使用: `http://<RPi の IP>:8000`
 
 ### 4. セッションを記録する
 
@@ -80,9 +84,13 @@ http://bt-collector.local:8000
 6. 記録が終わったら **「セッション終了 → ログ保存」** をクリック
 7. `data/` ディレクトリに JSONL ファイルが保存される
 
-### 5. ログファイルを Mac に取得する
+### 5. ログファイルを取得する
 
-Mac のターミナルから SCP でコピー:
+**方法 1: Web UI から（どの端末でも可）**
+
+セッション一覧のファイル名をクリック → 新しいタブにテキスト表示される。コピーまたは `Cmd+S` / `Ctrl+S` で保存。
+
+**方法 2: SCP でコピー（Mac / Linux）**
 
 ```bash
 # 全ファイルをまとめてコピー
@@ -91,8 +99,6 @@ scp pi@bt-collector.local:~/bt-metadata-collector/data/*.jsonl ~/Downloads/
 # 特定のファイルのみ
 scp pi@bt-collector.local:~/bt-metadata-collector/data/<ファイル名>.jsonl ~/Downloads/
 ```
-
-Web UI のセッション一覧からファイル名をクリックすると、新しいタブにテキスト表示もできる。
 
 ### 出先での利用（iPhone テザリング）
 
