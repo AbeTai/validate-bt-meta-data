@@ -441,6 +441,25 @@ section h2 {
     text-decoration: underline;
 }
 
+/* ── 削除ボタン ── */
+
+.btn-delete {
+    background: none;
+    border: 1px solid var(--danger);
+    color: var(--danger);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    line-height: 1.4;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.btn-delete:hover {
+    background: var(--danger);
+    color: white;
+}
+
 /* ── ナビゲーション ── */
 
 .nav-links {

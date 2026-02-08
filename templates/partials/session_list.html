@@ -31,6 +31,7 @@
             <th>OS</th>
             <th>トラック数</th>
             <th>CSV</th>
+            <th></th>
         </tr>
     </thead>
     <tbody>
@@ -43,6 +44,13 @@
             <td>{{ s.os_version }}</td>
             <td>{{ s.track_count }}</td>
             <td><a href="/sessions/{{ s.filename }}/csv" class="csv-link">DL</a></td>
+            <td>
+                <button class="btn-delete"
+                        hx-delete="/sessions/{{ s.filename }}"
+                        hx-target="#session-list"
+                        hx-swap="innerHTML"
+                        hx-confirm="「{{ s.filename }}」を削除しますか？">x</button>
+            </td>
         </tr>
         {% endfor %}
     </tbody>

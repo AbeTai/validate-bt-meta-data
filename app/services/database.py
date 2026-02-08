@@ -120,3 +120,14 @@ def get_session_filepath(filename: str) -> Optional[Path]:
     if filepath.exists() and filepath.suffix == ".jsonl":
         return filepath
     return None
+
+
+def delete_session(filename: str) -> bool:
+    """セッションログファイルを削除する。"""
+    filepath = get_session_filepath(filename)
+    if filepath is None:
+        return False
+
+    filepath.unlink()
+    logger.info("セッションログを削除: %s", filename)
+    return True

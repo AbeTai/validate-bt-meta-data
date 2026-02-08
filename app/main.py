@@ -30,6 +30,7 @@ from app.services.analysis import (
 )
 from app.services.avrcp_monitor import AVRCPMonitor
 from app.services.database import (
+    delete_session,
     generate_filename,
     get_session_filepath,
     list_sessions,
@@ -468,6 +469,24 @@ async def download_session_csv(filename: str):
         content=output.getvalue(),
         media_type="text/csv; charset=utf-8",
         headers={"Content-Disposition": f'attachment; filename="{csv_filename}"'},
+    )
+
+
+@app.delete("/sessions/{filename}", response_class=HTMLResponse)
+async def remove_session(request: Request, filename: str):
+    """セッションログファイルを削除する。"""
+    if not delete_session(filename):
+        return JSONResponse(
+            status_code=404,
+            content={"detail": "ファイルが見つかりません"},
+        )
+
+    logger.info("セッション削除: %s", filename)
+
+    sessions = list_sessions()
+    return templates.TemplateResponse(
+        "partials/session_list.html",
+        {"request": request, "sessions": sessions},
     )
 
 
