@@ -1,9 +1,20 @@
 <form hx-post="/session/start" hx-target="#session-control" hx-swap="innerHTML" class="session-form">
     <div class="form-group">
         <label for="content_name">コンテンツ名</label>
-        <input type="text" id="content_name" name="content_name"
-               placeholder="例: Spotify, YouTube, Apple Music, Netflix, radiko"
-               required>
+        <select id="content_name" name="content_name" required>
+            <option value="">-- 選択 --</option>
+            {% for category, services in content_options.items() %}
+            <optgroup label="{{ category }}">
+                {% for service in services %}
+                <option value="{{ service }}">{{ service }}</option>
+                {% endfor %}
+            </optgroup>
+            {% endfor %}
+            <option value="その他">その他（自由入力）</option>
+        </select>
+        <input type="text" id="content-custom" name="content_name_custom"
+               placeholder="コンテンツ名を入力"
+               class="hidden" disabled>
     </div>
 
     <div class="form-group">
@@ -40,6 +51,13 @@
                class="hidden" disabled>
     </div>
 
+    <div class="form-group">
+        <label class="checkbox-label">
+            <input type="checkbox" id="bg_playback" name="bg_playback">
+            BG再生（バックグラウンド再生中）
+        </label>
+    </div>
+
     <button type="submit" class="btn btn-start">セッション開始</button>
 </form>
 
@@ -67,4 +85,27 @@ document.addEventListener('htmx:afterSwap', function(evt) {
         }
     }
 });
+
+// コンテンツ名の「その他」選択時に自由入力
+(function() {
+    const select = document.getElementById('content_name');
+    const customInput = document.getElementById('content-custom');
+    if (select && customInput) {
+        select.addEventListener('change', function() {
+            if (this.value === 'その他') {
+                customInput.classList.remove('hidden');
+                customInput.disabled = false;
+                customInput.required = true;
+                select.name = '';
+                customInput.name = 'content_name';
+            } else {
+                customInput.classList.add('hidden');
+                customInput.disabled = true;
+                customInput.required = false;
+                select.name = 'content_name';
+                customInput.name = 'content_name_custom';
+            }
+        });
+    }
+})();
 </script>

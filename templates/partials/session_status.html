@@ -21,6 +21,10 @@
                 <span class="detail-value">{{ session.os_version }}</span>
             </div>
             <div class="detail-row">
+                <span class="detail-label">BG再生:</span>
+                <span class="detail-value">{{ "ON" if session.bg_playback else "OFF" }}</span>
+            </div>
+            <div class="detail-row">
                 <span class="detail-label">開始時刻:</span>
                 <span class="detail-value">{{ session.start_time.strftime('%H:%M:%S') }}</span>
             </div>

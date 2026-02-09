@@ -29,6 +29,7 @@
             <th>Web/アプリ</th>
             <th>端末</th>
             <th>OS</th>
+            <th>BG</th>
             <th>トラック数</th>
             <th>CSV</th>
             <th></th>
@@ -42,6 +43,7 @@
             <td>{{ s.platform_type }}</td>
             <td>{{ s.device }}</td>
             <td>{{ s.os_version }}</td>
+            <td>{{ "ON" if s.bg_playback else "OFF" }}</td>
             <td>{{ s.track_count }}</td>
             <td><a href="/sessions/{{ s.filename }}/csv" class="csv-link">DL</a></td>
             <td>

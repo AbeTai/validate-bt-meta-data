@@ -53,6 +53,7 @@ def save_session(
     session_start: datetime,
     session_end: datetime,
     tracks: list[dict],
+    bg_playback: bool = False,
 ) -> Path:
     """セッションデータを JSONL ファイルに保存する。"""
     DATA_DIR.mkdir(parents=True, exist_ok=True)
@@ -66,6 +67,7 @@ def save_session(
             "platform_type": platform_type,
             "device": device,
             "os_version": os_version,
+            "bg_playback": bg_playback,
             "session_start": session_start.isoformat(),
             "session_end": session_end.isoformat(),
             "track_count": len(tracks),

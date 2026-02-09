@@ -161,6 +161,7 @@ def get_device_os_comparison() -> list[dict]:
             h.get("device", ""),
             h.get("os_version", ""),
             h.get("platform_type", ""),
+            h.get("bg_playback", False),
         )
         if key not in groups:
             groups[key] = {
@@ -168,6 +169,7 @@ def get_device_os_comparison() -> list[dict]:
                 "device": key[1],
                 "os_version": key[2],
                 "platform_type": key[3],
+                "bg_playback": key[4],
                 "session_count": 0,
                 "tracks": [],
             }
@@ -191,6 +193,7 @@ def get_device_os_comparison() -> list[dict]:
             "device": group["device"],
             "os_version": group["os_version"],
             "platform_type": group["platform_type"],
+            "bg_playback": group["bg_playback"],
             "session_count": group["session_count"],
             "track_count": total,
             "field_coverage": field_coverage,

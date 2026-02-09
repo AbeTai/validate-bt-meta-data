@@ -58,6 +58,13 @@ logging.getLogger().addHandler(_file_handler)
 
 logger = logging.getLogger(__name__)
 
+# サービス選択肢の定義（カテゴリ付き）
+CONTENT_OPTIONS: dict[str, list[str]] = {
+    "音楽": ["Spotify", "Apple Music", "YouTube Music", "Amazon Music", "LINE MUSIC", "AWA"],
+    "動画": ["YouTube", "Netflix", "Amazon Prime Video", "Disney+", "TVer", "ABEMA", "U-NEXT"],
+    "ラジオ・ポッドキャスト": ["radiko", "らじる★らじる", "Apple Podcast", "Voicy"],
+}
+
 # OS 選択肢の定義
 OS_OPTIONS: dict[str, list[str]] = {
     "iPhone": ["iOS 18", "iOS 17", "iOS 16"],
@@ -76,6 +83,7 @@ class SessionState:
     platform_type: str = ""
     device: str = ""
     os_version: str = ""
+    bg_playback: bool = False
     start_time: Optional[datetime] = None
     tracks: list[dict] = field(default_factory=list)
     seq: int = 0
@@ -175,6 +183,7 @@ async def index(request: Request):
             "session": session,
             "sessions": sessions,
             "os_options": OS_OPTIONS,
+            "content_options": CONTENT_OPTIONS,
         },
     )
 
@@ -189,6 +198,7 @@ async def session_start(
     platform_type: str = Form(...),
     device: str = Form(...),
     os_version: str = Form(...),
+    bg_playback: Optional[str] = Form(None),
 ):
     """セッションを開始する。"""
     session.active = True
@@ -196,13 +206,14 @@ async def session_start(
     session.platform_type = platform_type
     session.device = device
     session.os_version = os_version
+    session.bg_playback = bg_playback == "on"
     session.start_time = datetime.now()
     session.tracks = []
     session.seq = 0
 
     logger.info(
-        "セッション開始: %s (%s, %s, %s)",
-        content_name, platform_type, device, os_version,
+        "セッション開始: %s (%s, %s, %s, BG=%s)",
+        content_name, platform_type, device, os_version, session.bg_playback,
     )
 
     return templates.TemplateResponse(
@@ -217,7 +228,7 @@ async def session_stop(request: Request):
     if not session.active:
         return templates.TemplateResponse(
             "partials/session_form.html",
-            {"request": request, "session": session, "os_options": OS_OPTIONS},
+            {"request": request, "session": session, "os_options": OS_OPTIONS, "content_options": CONTENT_OPTIONS},
         )
 
     session_end = datetime.now()
@@ -237,6 +248,7 @@ async def session_stop(request: Request):
         platform_type=session.platform_type,
         device=session.device,
         os_version=session.os_version,
+        bg_playback=session.bg_playback,
         session_start=session.start_time,
         session_end=session_end,
         tracks=session.tracks,
@@ -256,7 +268,7 @@ async def session_stop(request: Request):
 
     return templates.TemplateResponse(
         "partials/session_form_and_list.html",
-        {"request": request, "session": session, "sessions": sessions, "os_options": OS_OPTIONS},
+        {"request": request, "session": session, "sessions": sessions, "os_options": OS_OPTIONS, "content_options": CONTENT_OPTIONS},
     )
 
 
@@ -270,7 +282,7 @@ async def session_status(request: Request):
         )
     return templates.TemplateResponse(
         "partials/session_form.html",
-        {"request": request, "session": session, "os_options": OS_OPTIONS},
+        {"request": request, "session": session, "os_options": OS_OPTIONS, "content_options": CONTENT_OPTIONS},
     )
 
 

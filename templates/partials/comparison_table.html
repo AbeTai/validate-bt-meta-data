@@ -7,6 +7,7 @@
                 <th>端末</th>
                 <th>OS</th>
                 <th>Web/App</th>
+                <th>BG</th>
                 <th>セッション</th>
                 <th>トラック</th>
                 {% for field in fields %}
@@ -21,6 +22,7 @@
                 <td>{{ row.device }}</td>
                 <td>{{ row.os_version }}</td>
                 <td>{{ row.platform_type }}</td>
+                <td>{{ "ON" if row.bg_playback else "OFF" }}</td>
                 <td>{{ row.session_count }}</td>
                 <td>{{ row.track_count }}</td>
                 {% for field in fields %}
